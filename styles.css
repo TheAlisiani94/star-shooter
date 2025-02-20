@@ -1,0 +1,116 @@
+/* Base Background Animation */
+.game-container {
+    background-color: #000 !important;
+}
+
+.bg-space {
+    background: #000 url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><circle cx="100" cy="100" r="1" fill="white"/></svg>') repeat;
+    animation: stars 20s linear infinite;
+}
+
+@keyframes stars {
+    from { background-position: 0 0; }
+    to { background-position: 400px 400px; }
+}
+
+/* Background Options with Black Base */
+.bg-nebula {
+    background: #000 url('nebula-bg.jpg') center/cover;
+}
+
+.bg-galaxy {
+    background: #000 url('galaxy-bg.jpg') center/cover;
+}
+
+.bg-stars {
+    background: #000 url('stars-bg.gif') repeat;
+}
+
+/* Canvas Setup */
+#gameCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Modal Styling */
+.modal-content {
+    background: rgba(0, 0, 0, 0.8) !important;
+    border: 1px solid #00ff00 !important;
+}
+
+/* Game Elements */
+.bullet {
+    position: absolute;
+    width: 4px;
+    height: 12px;
+    background: #ff0000;
+    border-radius: 2px;
+    filter: drop-shadow(0 0 3px #ff0000);
+}
+
+.enemy {
+    position: absolute;
+    animation: float 2s infinite ease-in-out;
+    filter: drop-shadow(0 0 5px #00ffff);
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.explosion {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: radial-gradient(circle, #ff8f00 20%, transparent 60%);
+    animation: explode 0.5s forwards;
+}
+
+@keyframes explode {
+    from { transform: scale(0); opacity: 1; }
+    to { transform: scale(3); opacity: 0; }
+}
+
+/* Score Display */
+.score-container, .lives-container {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 8px 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.score-container h2, .lives-container h2 {
+    font-family: 'Courier New', monospace;
+    letter-spacing: 2px;
+    color: #00ff00;
+    text-shadow: 0 0 8px #00ff0080;
+}
+
+/* Ship Customization */
+.ship-color-input {
+    width: 60px;
+    height: 60px;
+    padding: 5px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.ship-preview-container {
+    border: 2px solid #ffffff30;
+    border-radius: 8px;
+    padding: 10px;
+    background: #000000aa;
+    width: fit-content;
+}
+
+#shipPreview {
+    background: #000 !important;
+    display: block;
+    width: 100px;
+    height: 60px;
+    border-radius: 6px;
+}
