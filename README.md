@@ -1,6 +1,6 @@
 # Star Shooter
 
-A space-themed shooter game built with HTML5, CSS, and JavaScript. Play it here: [Star Shooter](https://your-username.github.io/star-shooter/)
+A space-themed shooter game built with HTML5, CSS, and JavaScript. Play it here: [Star Shooter](https://thealisiani94.github.io/star-shooter/)
 
 ## How to Play
 - **Controls**: Use arrow keys to move your ship.
