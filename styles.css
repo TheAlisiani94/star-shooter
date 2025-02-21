@@ -114,3 +114,18 @@
     height: 60px;
     border-radius: 6px;
 }
+
+#mobileControls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+#shootButton {
+    width: 70px;
+    height: 70px;
+    opacity: 0.7;
+    box-shadow: 0 0 15px #ff0000;
+    touch-action: manipulation;
+}

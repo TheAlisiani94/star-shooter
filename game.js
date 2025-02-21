@@ -14,6 +14,10 @@ const difficultySettings = {
     hard: { enemySpeed: 5, spawnRate: 1000 }
 };
 
+// Mobile detection and modal reference
+let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+let settingsModal;
+
 // Audio Setup
 const sounds = {
     shoot: new Howl({
@@ -41,10 +45,15 @@ const sounds = {
 
 // Initialization
 document.addEventListener('DOMContentLoaded', () => {
-    sounds.menuMusic.play();
+	
+	sounds.menuMusic.play();
     
+    // Initialize modal
+    settingsModal = new bootstrap.Modal(document.getElementById('settingsModal'));
+    settingsModal.show();
+
+    // Ship preview setup
     const shipPreviewCtx = document.getElementById('shipPreview').getContext('2d');
-    let currentBackground = 'space';
 
     // Ship color preview
     function drawShipPreview(color) {
@@ -95,33 +104,28 @@ document.addEventListener('DOMContentLoaded', () => {
         drawShipPreview(e.target.value);
     });
 
-    // Background change handler
+    // Background handler
     document.getElementById('background').addEventListener('change', function(e) {
-		const gameContainer = document.querySelector('.game-container');
-		gameContainer.className = `container-fluid position-relative vh-100 bg-${e.target.value}`;
-		
-		// Maintain black base for space background
-		if(e.target.value === 'space') {
-			gameContainer.style.backgroundColor = '#000';
-		} else {
-			gameContainer.style.backgroundColor = '';
-		}
-	});
+        const gameContainer = document.querySelector('.game-container');
+        gameContainer.className = `container-fluid position-relative vh-100 bg-${e.target.value}`;
+        gameContainer.style.backgroundColor = e.target.value === 'space' ? '#000' : '';
+    });
 
-    // Initialize game
+    // Game setup
     canvas = document.getElementById('gameCanvas');
     ctx = canvas.getContext('2d');
-    new bootstrap.Modal(document.getElementById('settingsModal')).show();
-    
+    resizeCanvas();
+    drawShipPreview(document.getElementById('shipColor').value);
+
+    // Start game handler
     document.getElementById('startGame').addEventListener('click', () => {
+        settingsModal.hide();
         sounds.menuMusic.stop();
         sounds.bgm.play();
         initGame();
     });
-    
+
     window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-    drawShipPreview(document.getElementById('shipColor').value);
 });
 
 // Core Game Functions
@@ -163,10 +167,51 @@ function resetGameState() {
     document.getElementById('hitCounter').textContent = '3';
 }
 
+
 function setupEventListeners() {
+    // Keyboard controls
     document.addEventListener('keydown', handleControls);
+    
+    // Universal click/touch shooting
+    canvas.addEventListener('click', handleShoot);
+    canvas.addEventListener('touchend', handleShoot);
+    
+    // Mobile-specific controls
+    if(isMobile) {
+        // Add fire button listener
+        document.getElementById('shootButton').addEventListener('touchstart', handleShoot);
+        
+        // Add touch movement handlers
+        let touchStartX = 0, touchStartY = 0;
+        canvas.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            e.preventDefault();
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            if(!gameActive) return;
+            const touch = e.touches[0];
+            const moveX = touch.clientX - touchStartX;
+            const moveY = touch.clientY - touchStartY;
+            
+            player.x = Math.max(20, Math.min(canvas.width - 20, player.x + moveX));
+            player.y = Math.max(20, Math.min(canvas.height - 20, player.y + moveY));
+            
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            e.preventDefault();
+        });
+    }
+
+    // Pause/sound buttons
     document.getElementById('pauseBtn').addEventListener('click', togglePause);
     document.getElementById('soundBtn').addEventListener('click', toggleSound);
+}
+
+function handleShoot(e) {
+    e.preventDefault();
+    shoot();
 }
 
 function startGameSystems(difficulty) {
@@ -240,22 +285,21 @@ function updatePlayer() {
 function handleControls(e) {
     if(!gameActive) return;
     
-    const moveStep = player.speed;
     switch(e.keyCode) {
         case KEY.LEFT: 
-            player.x = Math.max(20, player.x - moveStep);
+            player.x = Math.max(20, player.x - player.speed);
             break;
         case KEY.RIGHT: 
-            player.x = Math.min(canvas.width - 20, player.x + moveStep);
+            player.x = Math.min(canvas.width - 20, player.x + player.speed);
             break;
         case KEY.UP:
-            player.y = Math.max(20, player.y - moveStep);
+            player.y = Math.max(20, player.y - player.speed);
             break;
         case KEY.DOWN:
-            player.y = Math.min(canvas.height - 20, player.y + moveStep);
+            player.y = Math.min(canvas.height - 20, player.y + player.speed);
             break;
         case KEY.SPACE: 
-            shoot(); 
+            shoot();
             break;
     }
 }
@@ -401,6 +445,26 @@ function handlePlayerHit(enemyIndex) {
     if(player.hits >= player.maxHits) {
         gameOver();
     }
+}
+
+// Touch handlers
+function handleTouchStart(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+}
+
+function handleTouchMove(e) {
+    if(!gameActive) return;
+    
+    const touch = e.touches[0];
+    const moveX = touch.clientX - touchStartX;
+    const moveY = touch.clientY - touchStartY;
+    
+    player.x = Math.max(20, Math.min(canvas.width - 20, player.x + moveX));
+    player.y = Math.max(20, Math.min(canvas.height - 20, player.y + moveY));
+    
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
 }
 
 function gameOver() {
