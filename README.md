@@ -19,5 +19,5 @@ A space-themed shooter game built with HTML5, CSS, and JavaScript. Play it here:
 - `Sounds/`: Audio assets (e.g., `StudioKolomna - Main Track.mp3`).
 
 ## Credits
-- Created by Alexa.
+- Created by Alexander Isiani.
 - Built with Bootstrap, Font Awesome, and Howler.js.

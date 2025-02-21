@@ -8,121 +8,97 @@ const KEY = {
 };
 let canvas, ctx, player, bullets = [], enemies = [];
 let score = 0, isPaused = false, soundEnabled = true, gameActive = false;
+let level = 1, highScore = { score: localStorage.getItem('highScore') || 0, player: localStorage.getItem('highScorePlayer') || 'Unknown' };
 const difficultySettings = {
-    easy: { enemySpeed: 2, spawnRate: 2000 },
-    medium: { enemySpeed: 3.5, spawnRate: 1500 },
-    hard: { enemySpeed: 5, spawnRate: 1000 }
+    easy: { baseEnemySpeed: 2, baseSpawnRate: 2000 },
+    medium: { baseEnemySpeed: 3.5, baseSpawnRate: 1500 },
+    hard: { baseEnemySpeed: 5, baseSpawnRate: 1000 }
 };
 
 // Mobile detection and modal reference
 let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-let settingsModal;
+let settingsModal, enemySpawnInterval;
 
 // Audio Setup
 const sounds = {
-    shoot: new Howl({
-        src: ['Sounds/Gun Shots.mp3'],
-        volume: 0.6,
-        sprite: {
-            shoot: [0, 300]
-        }
-    }),
-    bgm: new Howl({
-        src: ['Sounds/Battle in Space (Orchestral).wav'],
-        loop: true,
-        volume: 0.5
-    }),
-    explosion: new Howl({
-        src: ['Sounds/Explosion.mp3'],
-        volume: 0.7
-    }),
-    menuMusic: new Howl({
-        src: ['Sounds/StudioKolomna - Main Track.mp3'],
-        loop: true,
-        volume: 0.4
-    })
+    shoot: new Howl({ src: ['Sounds/Gun Shots.mp3'], volume: 0.6, sprite: { shoot: [0, 300] } }),
+    bgm: new Howl({ src: ['Sounds/Battle in Space (Orchestral).wav'], loop: true, volume: 0.5 }),
+    explosion: new Howl({ src: ['Sounds/Explosion.mp3'], volume: 0.7 }),
+    menuMusic: new Howl({ src: ['Sounds/StudioKolomna - Main Track.mp3'], loop: true, volume: 0.4 })
 };
 
 // Initialization
 document.addEventListener('DOMContentLoaded', () => {
-	
-	sounds.menuMusic.play();
+    sounds.menuMusic.play();
     
-    // Initialize modal
     settingsModal = new bootstrap.Modal(document.getElementById('settingsModal'));
     settingsModal.show();
 
-    // Ship preview setup
     const shipPreviewCtx = document.getElementById('shipPreview').getContext('2d');
 
-    // Ship color preview
     function drawShipPreview(color) {
-		const previewCtx = document.getElementById('shipPreview').getContext('2d');
-		previewCtx.clearRect(0, 0, 100, 60);
-		
-		// Draw full ship preview
-		previewCtx.save();
-		previewCtx.translate(50, 30);
-		
-		// Main body
-		previewCtx.fillStyle = color;
-		previewCtx.beginPath();
-		previewCtx.moveTo(-20, -10);
-		previewCtx.lineTo(-15, 20);
-		previewCtx.lineTo(15, 20);
-		previewCtx.lineTo(20, -10);
-		previewCtx.closePath();
-		previewCtx.fill();
+        const previewCtx = document.getElementById('shipPreview').getContext('2d');
+        previewCtx.clearRect(0, 0, 100, 60);
+        previewCtx.save();
+        previewCtx.translate(50, 30);
+        
+        previewCtx.fillStyle = color;
+        previewCtx.beginPath();
+        previewCtx.moveTo(-20, -10);
+        previewCtx.lineTo(-15, 20);
+        previewCtx.lineTo(15, 20);
+        previewCtx.lineTo(20, -10);
+        previewCtx.closePath();
+        previewCtx.fill();
 
-		// Cockpit
-		previewCtx.fillStyle = '#87CEEB';
-		previewCtx.beginPath();
-		previewCtx.moveTo(-10, -5);
-		previewCtx.lineTo(0, -15);
-		previewCtx.lineTo(10, -5);
-		previewCtx.closePath();
-		previewCtx.fill();
+        previewCtx.fillStyle = '#87CEEB';
+        previewCtx.beginPath();
+        previewCtx.moveTo(-10, -5);
+        previewCtx.lineTo(0, -15);
+        previewCtx.lineTo(10, -5);
+        previewCtx.closePath();
+        previewCtx.fill();
 
-		// Wings
-		previewCtx.fillStyle = color;
-		previewCtx.beginPath();
-		previewCtx.moveTo(-25, 5);
-		previewCtx.lineTo(-40, 15);
-		previewCtx.lineTo(-25, 15);
-		previewCtx.lineTo(-15, 10);
-		previewCtx.lineTo(15, 10);
-		previewCtx.lineTo(25, 15);
-		previewCtx.lineTo(40, 15);
-		previewCtx.lineTo(25, 5);
-		previewCtx.closePath();
-		previewCtx.fill();
+        previewCtx.fillStyle = color;
+        previewCtx.beginPath();
+        previewCtx.moveTo(-25, 5);
+        previewCtx.lineTo(-40, 15);
+        previewCtx.lineTo(-25, 15);
+        previewCtx.lineTo(-15, 10);
+        previewCtx.lineTo(15, 10);
+        previewCtx.lineTo(25, 15);
+        previewCtx.lineTo(40, 15);
+        previewCtx.lineTo(25, 5);
+        previewCtx.closePath();
+        previewCtx.fill();
 
-		previewCtx.restore();
-	}
+        previewCtx.restore();
+    }
 
     document.getElementById('shipColor').addEventListener('input', function(e) {
         drawShipPreview(e.target.value);
     });
 
-    // Background handler
     document.getElementById('background').addEventListener('change', function(e) {
-        const gameContainer = document.querySelector('.game-container');
+        const gameContainer = document.querySelector('.container-fluid');
         gameContainer.className = `container-fluid position-relative vh-100 bg-${e.target.value}`;
-        gameContainer.style.backgroundColor = e.target.value === 'space' ? '#000' : '';
     });
 
-    // Game setup
     canvas = document.getElementById('gameCanvas');
     ctx = canvas.getContext('2d');
     resizeCanvas();
     drawShipPreview(document.getElementById('shipColor').value);
 
-    // Start game handler
     document.getElementById('startGame').addEventListener('click', () => {
         settingsModal.hide();
         sounds.menuMusic.stop();
         sounds.bgm.play();
         initGame();
+    });
+
+    // NEW: Exit Button Handler
+    document.getElementById('exitGame').addEventListener('click', () => {
+        window.close(); // Note: This may not work in all browsers due to security restrictions
     });
 
     window.addEventListener('resize', resizeCanvas);
@@ -134,21 +110,23 @@ function initGame() {
         difficulty: document.getElementById('difficulty').value,
         color: document.getElementById('shipColor').value,
         angles: parseInt(document.getElementById('angles').value),
-        country: document.getElementById('country').value
+        playerName: document.getElementById('playerName').value || 'Player'
     };
 
     player = {
         x: canvas.width/2,
-        y: canvas.height - 100,  // Start at bottom center
+        y: canvas.height - 100,
         width: 40,
         height: 60,
         color: settings.color,
         angles: settings.angles,
-        speed: 8,
+        speed: settings.angles === 1 ? 10 : 8, // NEW: Faster speed for single shot
         lastShot: 0,
         fireRate: 250,
         hits: 0,
-        maxHits: 3
+        maxHits: 3,
+        name: settings.playerName,
+        shootingMode: settings.angles
     };
 
     resetGameState();
@@ -156,32 +134,25 @@ function initGame() {
     startGameSystems(settings.difficulty);
 }
 
-
 function resetGameState() {
     score = 0;
     bullets = [];
     enemies = [];
     gameActive = true;
     player.hits = 0;
+    level = 1;
     document.getElementById('currentScore').textContent = '0';
     document.getElementById('hitCounter').textContent = '3';
+    document.getElementById('currentLevel').textContent = '1';
 }
 
-
 function setupEventListeners() {
-    // Keyboard controls
     document.addEventListener('keydown', handleControls);
-    
-    // Universal click/touch shooting
     canvas.addEventListener('click', handleShoot);
     canvas.addEventListener('touchend', handleShoot);
     
-    // Mobile-specific controls
     if(isMobile) {
-        // Add fire button listener
         document.getElementById('shootButton').addEventListener('touchstart', handleShoot);
-        
-        // Add touch movement handlers
         let touchStartX = 0, touchStartY = 0;
         canvas.addEventListener('touchstart', (e) => {
             touchStartX = e.touches[0].clientX;
@@ -194,19 +165,24 @@ function setupEventListeners() {
             const touch = e.touches[0];
             const moveX = touch.clientX - touchStartX;
             const moveY = touch.clientY - touchStartY;
-            
             player.x = Math.max(20, Math.min(canvas.width - 20, player.x + moveX));
             player.y = Math.max(20, Math.min(canvas.height - 20, player.y + moveY));
-            
             touchStartX = touch.clientX;
             touchStartY = touch.clientY;
             e.preventDefault();
         });
     }
 
-    // Pause/sound buttons
     document.getElementById('pauseBtn').addEventListener('click', togglePause);
     document.getElementById('soundBtn').addEventListener('click', toggleSound);
+    // NEW: Home Button Handler
+    document.getElementById('homeBtn').addEventListener('click', () => {
+        gameActive = false;
+        sounds.bgm.stop();
+        settingsModal.show();
+        document.getElementById('pauseOverlay').style.display = 'none';
+        isPaused = false;
+    });
 }
 
 function handleShoot(e) {
@@ -229,6 +205,7 @@ function gameLoop() {
     updateBullets();
     updateEnemies();
     checkCollisions();
+    checkLevelProgression();
     requestAnimationFrame(gameLoop);
 }
 
@@ -236,7 +213,6 @@ function updatePlayer() {
     ctx.save();
     ctx.translate(player.x, player.y);
     
-    // Main body (color customizable)
     ctx.fillStyle = player.color;
     ctx.beginPath();
     ctx.moveTo(-20, -10);
@@ -246,7 +222,6 @@ function updatePlayer() {
     ctx.closePath();
     ctx.fill();
 
-    // Cockpit
     ctx.fillStyle = '#87CEEB';
     ctx.beginPath();
     ctx.moveTo(-10, -5);
@@ -255,7 +230,6 @@ function updatePlayer() {
     ctx.closePath();
     ctx.fill();
 
-    // Wings
     ctx.fillStyle = player.color;
     ctx.beginPath();
     ctx.moveTo(-25, 5);
@@ -269,7 +243,6 @@ function updatePlayer() {
     ctx.closePath();
     ctx.fill();
 
-    // Afterburner
     ctx.fillStyle = '#FF4500';
     ctx.beginPath();
     ctx.moveTo(-15, 20);
@@ -284,7 +257,6 @@ function updatePlayer() {
 // Game Mechanics
 function handleControls(e) {
     if(!gameActive) return;
-    
     switch(e.keyCode) {
         case KEY.LEFT: 
             player.x = Math.max(20, player.x - player.speed);
@@ -304,16 +276,18 @@ function handleControls(e) {
     }
 }
 
-
 function shoot() {
     const now = Date.now();
     if(now - player.lastShot < player.fireRate) return;
     
     const angles = [];
-    switch(player.angles) {
+    switch(player.shootingMode) {
         case 1: angles.push(0); break;
         case 3: angles.push(-15, 0, 15); break;
         case 5: angles.push(-30, -15, 0, 15, 30); break;
+        case 7:
+            for(let i = -45; i <= 45; i += 15) angles.push(i);
+            break;
     }
 
     angles.forEach(angle => {
@@ -322,7 +296,7 @@ function shoot() {
             y: player.y,
             dx: Math.sin(angle * Math.PI/180),
             dy: -Math.cos(angle * Math.PI/180),
-            speed: 12
+            speed: 12 + level * 0.5
         });
     });
 
@@ -336,20 +310,32 @@ function shoot() {
 // Enemy System
 function startEnemySpawner(difficulty) {
     const settings = difficultySettings[difficulty];
-    setInterval(() => {
-        if(!gameActive) return;
+    // FIXED: Clear previous interval and stop spawning when paused
+    if(enemySpawnInterval) clearInterval(enemySpawnInterval);
+    enemySpawnInterval = setInterval(() => {
+        if(!gameActive || isPaused) return;
         enemies.push(createEnemy());
-    }, settings.spawnRate);
+    }, settings.baseSpawnRate / (1 + level * 0.1));
 }
 
 function createEnemy() {
+    const types = ['star', 'planet', 'wormhole', 'asteroid', 'boss'];
+    const type = level >= 5 && Math.random() < 0.1 ? 'boss' : types[Math.floor(Math.random() * (types.length - 1))];
+    const colors = [
+        '#FF0000', '#00FF00', '#0000FF', '#FF00FF', '#FFFF00', '#00FFFF',
+        '#FF69B4', '#7FFF00', '#00CED1', `hsl(${Math.random() * 360}, 100%, 50%)`
+    ];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+
     return {
         x: Math.random() * (canvas.width - 50),
         y: -50,
-        width: 40,
-        height: 40,
-        type: Math.random() < 0.2 ? 'special' : 'normal',
-        speed: difficultySettings[document.getElementById('difficulty').value].enemySpeed * (Math.random() * 0.5 + 0.75)
+        width: type === 'boss' ? 80 : 40,
+        height: type === 'boss' ? 80 : 40,
+        type: type,
+        speed: difficultySettings[document.getElementById('difficulty').value].baseEnemySpeed * (1 + level * 0.2) * (Math.random() * 0.5 + 0.75),
+        color: color,
+        health: type === 'boss' ? 5 : 1 // NEW: Boss has more health
     };
 }
 
@@ -362,23 +348,82 @@ function updateEnemies() {
 }
 
 function drawEnemy(enemy) {
-    ctx.fillStyle = enemy.type === 'special' ? '#ff00ff' : '#00ffff';
-    ctx.beginPath();
-    ctx.arc(enemy.x, enemy.y, 20, 0, Math.PI * 2);
-    ctx.fill();
-    
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '16px Arial';
-    ctx.fillText(getCountryFlag(), enemy.x - 8, enemy.y + 5);
+    ctx.save();
+    ctx.translate(enemy.x, enemy.y);
+    ctx.fillStyle = enemy.color;
+
+    switch(enemy.type) {
+        case 'star':
+            ctx.beginPath();
+            for(let i = 0; i < 5; i++) {
+                ctx.lineTo(Math.cos(Math.PI * 2 * i / 5) * 20, Math.sin(Math.PI * 2 * i / 5) * 20);
+                ctx.lineTo(Math.cos(Math.PI * (2 * i + 1) / 5) * 10, Math.sin(Math.PI * (2 * i + 1) / 5) * 10);
+            }
+            ctx.closePath();
+            ctx.fill();
+            break;
+        case 'planet':
+            ctx.beginPath();
+            ctx.arc(0, 0, 20, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            ctx.arc(5, -5, 10, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+        case 'wormhole':
+            ctx.beginPath();
+            ctx.arc(0, 0, 20, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(0, 0, 15, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+        case 'asteroid':
+            ctx.beginPath();
+            ctx.moveTo(-20, -10);
+            ctx.lineTo(-10, -20);
+            ctx.lineTo(10, -15);
+            ctx.lineTo(20, 0);
+            ctx.lineTo(15, 20);
+            ctx.lineTo(-5, 15);
+            ctx.lineTo(-20, 10);
+            ctx.closePath();
+            ctx.fill();
+            break;
+        case 'boss':
+            ctx.beginPath();
+            ctx.moveTo(-40, -40);
+            ctx.lineTo(0, -20);
+            ctx.lineTo(40, -40);
+            ctx.lineTo(30, 0);
+            ctx.lineTo(40, 40);
+            ctx.lineTo(0, 20);
+            ctx.lineTo(-40, 40);
+            ctx.lineTo(-30, 0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(0, -10, 10, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+    }
+
+    ctx.restore();
+}
+
+function checkLevelProgression() {
+    const levelThreshold = level * 1000;
+    if(score >= levelThreshold) {
+        level++;
+        player.shootingMode = Math.max(player.angles, Math.min(7, Math.floor(level / 2) * 2 + 1));
+        document.getElementById('currentLevel').textContent = level;
+    }
 }
 
 // Utility Functions
-function getCountryFlag() {
-    const country = document.getElementById('country').value;
-    const flags = { usa: '🇺🇸', uk: '🇬🇧', japan: '🇯🇵' };
-    return flags[country] || '🚀';
-}
-
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -386,6 +431,7 @@ function resizeCanvas() {
 
 function togglePause() {
     isPaused = !isPaused;
+    document.getElementById('pauseOverlay').style.display = isPaused ? 'block' : 'none';
     if(gameActive && !isPaused) gameLoop();
 }
 
@@ -398,7 +444,6 @@ function toggleSound() {
 
 // Collision and Game State Management
 function checkCollisions() {
-    // Bullet-enemy collisions
     bullets.forEach((bullet, bIndex) => {
         enemies.forEach((enemy, eIndex) => {
             if(checkCollision(bullet, enemy)) {
@@ -407,13 +452,12 @@ function checkCollisions() {
         });
     });
 
-    // Player-enemy collisions
     enemies.forEach((enemy, eIndex) => {
         const dx = enemy.x - player.x;
         const dy = enemy.y - player.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        if(distance < 50) {
+        if(distance < (enemy.type === 'boss' ? 60 : 50)) {
             handlePlayerHit(eIndex);
         }
     });
@@ -422,15 +466,18 @@ function checkCollisions() {
 function checkCollision(bullet, enemy) {
     const dx = bullet.x - enemy.x;
     const dy = bullet.y - enemy.y;
-    return Math.sqrt(dx*dx + dy*dy) < 25;
+    return Math.sqrt(dx*dx + dy*dy) < (enemy.type === 'boss' ? 40 : 25);
 }
 
 function handleCollision(bIndex, eIndex, enemy) {
-    score += enemy.type === 'special' ? 150 : 100;
-    document.getElementById('currentScore').textContent = score;
-    createExplosion(enemy.x, enemy.y);
+    enemy.health--;
+    if(enemy.health <= 0) {
+        score += enemy.type === 'boss' ? 500 : 100;
+        enemies.splice(eIndex, 1);
+        createExplosion(enemy.x, enemy.y);
+    }
     bullets.splice(bIndex, 1);
-    enemies.splice(eIndex, 1);
+    document.getElementById('currentScore').textContent = score;
     if(soundEnabled) sounds.explosion.play();
 }
 
@@ -447,36 +494,21 @@ function handlePlayerHit(enemyIndex) {
     }
 }
 
-// Touch handlers
-function handleTouchStart(e) {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-}
-
-function handleTouchMove(e) {
-    if(!gameActive) return;
-    
-    const touch = e.touches[0];
-    const moveX = touch.clientX - touchStartX;
-    const moveY = touch.clientY - touchStartY;
-    
-    player.x = Math.max(20, Math.min(canvas.width - 20, player.x + moveX));
-    player.y = Math.max(20, Math.min(canvas.height - 20, player.y + moveY));
-    
-    touchStartX = touch.clientX;
-    touchStartY = touch.clientY;
-}
-
 function gameOver() {
     gameActive = false;
     sounds.bgm.stop();
     Howler.stop();
+    clearInterval(enemySpawnInterval);
     
-    const highScore = Math.max(score, localStorage.getItem('highScore') || 0);
-    localStorage.setItem('highScore', highScore);
+    if(score > highScore.score) {
+        highScore = { score: score, player: player.name };
+        localStorage.setItem('highScore', highScore.score);
+        localStorage.setItem('highScorePlayer', highScore.player);
+    }
     
     document.getElementById('finalScore').textContent = score;
-    document.getElementById('highScore').textContent = highScore;
+    document.getElementById('highScorePlayer').textContent = highScore.player;
+    document.getElementById('highScore').textContent = highScore.score;
     new bootstrap.Modal(document.getElementById('gameOverModal')).show();
 }
 

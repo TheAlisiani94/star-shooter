@@ -1,10 +1,10 @@
 /* Base Background Animation */
-.game-container {
+.container-fluid {
     background-color: #000 !important;
 }
 
 .bg-space {
-    background: #000 url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><circle cx="100" cy="100" r="1" fill="white"/></svg>') repeat;
+    background: #000 url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><circle cx="100" cy="100" r="1" fill="white"/><circle cx="300" cy="200" r="1" fill="white"/><circle cx="50" cy="350" r="1" fill="white"/></svg>') repeat;
     animation: stars 20s linear infinite;
 }
 
@@ -13,17 +13,40 @@
     to { background-position: 400px 400px; }
 }
 
-/* Background Options with Black Base */
+/* Enhanced Beautiful Backgrounds */
 .bg-nebula {
-    background: #000 url('nebula-bg.jpg') center/cover;
+    background: linear-gradient(135deg, #1a0033 0%, #660066 50%, #ff0066 100%) url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><circle cx="100" cy="100" r="2" fill="rgba(255,255,255,0.3)"/></svg>') repeat;
+    animation: stars 30s linear infinite;
 }
 
 .bg-galaxy {
-    background: #000 url('galaxy-bg.jpg') center/cover;
+    background: radial-gradient(circle at center, #0d1b2a 0%, #1b263b 50%, #415a77 100%) url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><circle cx="150" cy="150" r="1" fill="white"/><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.5)"/></svg>') repeat;
+    animation: stars 25s linear infinite;
 }
 
 .bg-stars {
-    background: #000 url('stars-bg.gif') repeat;
+    background: #000 url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="1" fill="white"/><circle cx="25" cy="75" r="0.5" fill="white"/></svg>') repeat;
+    animation: stars 15s linear infinite;
+}
+
+.bg-white { background: #fff; color: #000; }
+.bg-black { background: #000; color: #fff; }
+.bg-sky { background: linear-gradient(to bottom, #87CEEB, #1E90FF); color: #fff; }
+.bg-gray { background: #808080; color: #fff; }
+.bg-aurora {
+    background: linear-gradient(45deg, #00ffcc, #6600cc, #ff3399);
+    animation: auroraShift 10s ease-in-out infinite;
+}
+
+@keyframes auroraShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.bg-cosmic-dust {
+    background: #1a1a3d url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><circle cx="100" cy="100" r="1" fill="rgba(255,255,255,0.4)"/><circle cx="150" cy="50" r="0.5" fill="rgba(255,255,255,0.6)"/></svg>') repeat;
+    animation: stars 20s linear infinite;
 }
 
 /* Canvas Setup */
@@ -75,15 +98,15 @@
     to { transform: scale(3); opacity: 0; }
 }
 
-/* Score Display */
-.score-container, .lives-container {
+/* Score, Lives, and Level Display */
+.score-container, .lives-container, .level-container {
     background: rgba(0, 0, 0, 0.7);
     padding: 8px 15px;
     border-radius: 8px;
     margin-bottom: 10px;
 }
 
-.score-container h2, .lives-container h2 {
+.score-container h2, .lives-container h2, .level-container h2 {
     font-family: 'Courier New', monospace;
     letter-spacing: 2px;
     color: #00ff00;
@@ -115,6 +138,20 @@
     border-radius: 6px;
 }
 
+/* NEW: Pause Overlay */
+.pause-overlay {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+}
+
+#homeBtn {
+    font-size: 1.5rem;
+    padding: 15px 30px;
+}
+
+/* Mobile Controls */
 #mobileControls {
     position: fixed;
     bottom: 20px;
