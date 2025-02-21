@@ -13,7 +13,6 @@
     to { background-position: 400px 400px; }
 }
 
-/* Enhanced Beautiful Backgrounds */
 .bg-nebula {
     background: linear-gradient(135deg, #1a0033 0%, #660066 50%, #ff0066 100%) url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><circle cx="100" cy="100" r="2" fill="rgba(255,255,255,0.3)"/></svg>') repeat;
     animation: stars 30s linear infinite;
@@ -98,6 +97,20 @@
     to { transform: scale(3); opacity: 0; }
 }
 
+/* NEW: Power-Up Styling */
+.power-up {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    animation: spin 2s infinite linear;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 /* Score, Lives, and Level Display */
 .score-container, .lives-container, .level-container {
     background: rgba(0, 0, 0, 0.7);
@@ -138,7 +151,7 @@
     border-radius: 6px;
 }
 
-/* NEW: Pause Overlay */
+/* Pause Overlay */
 .pause-overlay {
     top: 50%;
     left: 50%;
@@ -159,10 +172,14 @@
     z-index: 1000;
 }
 
-#shootButton {
+#shootButton, #specialButton {
     width: 70px;
     height: 70px;
     opacity: 0.7;
     box-shadow: 0 0 15px #ff0000;
     touch-action: manipulation;
+}
+
+#specialButton {
+    box-shadow: 0 0 15px #ffcc00;
 }

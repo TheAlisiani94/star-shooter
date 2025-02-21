@@ -12,7 +12,7 @@
     </audio>
 </head>
 <body>
-    <!-- Game Settings Modal (Home Screen) -->
+    <!-- Game Settings Modal (unchanged except Exit button already added) -->
     <div class="modal fade" id="settingsModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content bg-dark text-light">
@@ -67,7 +67,6 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" id="startGame">Start Game</button>
-                    <!-- NEW: Exit Button -->
                     <button type="button" class="btn btn-danger" id="exitGame">Exit</button>
                 </div>
             </div>
@@ -84,6 +83,9 @@
                 <div class="modal-body">
                     <p>Final Score: <span id="finalScore">0</span></p>
                     <p>High Score: <span id="highScorePlayer"></span> - <span id="highScore">0</span></p>
+                    <!-- NEW: Stats Display -->
+                    <p>Enemies Destroyed: <span id="enemiesDestroyed">0</span></p>
+                    <p>Bosses Defeated: <span id="bossesDefeated">0</span></p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-warning" onclick="location.reload()">Play Again</button>
@@ -108,19 +110,19 @@
                 <h5 class="mb-0">Lives</h5>
                 <h2 class="mb-0"><span id="hitCounter">3</span></h2>
             </div>
-            <!-- NEW: Level Display -->
             <div class="level-container">
                 <h5 class="mb-0">Level</h5>
                 <h2 class="mb-0"><span id="currentLevel">1</span></h2>
             </div>
         </div>
-        <!-- NEW: Home Button (Visible When Paused) -->
         <div class="position-absolute pause-overlay" id="pauseOverlay" style="display: none;">
             <button class="btn btn-lg btn-primary" id="homeBtn">Home</button>
         </div>
     </div>
     <div id="mobileControls" class="d-block d-md-none">
         <button id="shootButton" class="btn btn-danger btn-lg rounded-circle">FIRE</button>
+        <!-- NEW: Special Ability Button for Mobile -->
+        <button id="specialButton" class="btn btn-warning btn-lg rounded-circle" style="margin-left: 20px;">BOOM</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
